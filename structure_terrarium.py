@@ -22,7 +22,7 @@ class Terrarium:
     """ Класс "Террариум". """
 
     # Название файла с фоновой музыкой (без формата)
-    bgm_file_name = 'bg_music'
+    bgm_filename = 'bg_music'
 
     # Название папки для скриншотов, сделанных внутри приложения
     screenshots_path = 'screenshots'
@@ -60,17 +60,21 @@ class Terrarium:
         self.height = self.size_y * self.cell_size
         self.table = numpy.full((self.size_y, self.size_x), False, dtype=bool)
         self.__create_ants()
-        pygame.mixer.init()
         self.canvas = pygame.display.set_mode((self.width, self.height))
         self.canvas.fill(Ant.colors['clean'])
         self.clock = pygame.time.Clock()
+        pygame.mixer.init()
+        self.jukebox =  pygame.mixer.music
         self.music_file_path = ''.join([
             './',
-            Terrarium.bgm_file_name,
+            Terrarium.bgm_filename,
             '.',
             music_format,
         ])
         self.volume = 0.25
+        self.paused = False
+        pygame.display.flip()
+        self.start_play_music()
 
     @staticmethod
     def __form_hue_spectre(start: int, finish: int, hue_count: int):
@@ -122,29 +126,12 @@ class Terrarium:
                     random.randint(0, self.size_y-1),
                     hue_list[current_number]))
 
-    def recolor_cell(self, pos_x: int, pos_y: int, color):
-        """
-        Метод экземпляра объекта класса "Террариум", перекрашивающий одну ячейку
-        террариума, находящуюся по полученным координатам, в новый цвет.
-
-        Ключевые аргументы:
-        self – экземпляр объекта класса "Террариум".
-        pos_x - координаты перекрашиваемой ячейки по ширине изображения.
-        pos_y - координаты перекрашиваемой ячейки по высоте изображения.
-        color - новый цвет перекрашиваемой ячейки.
-
-        """
-        x = pos_x * self.cell_size
-        y = pos_y * self.cell_size
-        pygame.draw.rect(
-            self.canvas,
-            color,
-            (x, y, self.cell_size, self.cell_size))
-
     def start_play_music(self):
         """
         Метод экземпляра объекта класса "Террариум", включающий воспроизведение
         фоновой музыки.
+
+        Используется в конструкторе экземпляров объекта класса.
 
         поддерживаемые форматы музыкальных файлов:
         .flac, .it, .mid, .mod, .mp3, .ogg, .s3m, .wav, .xm
@@ -155,9 +142,9 @@ class Terrarium:
 
         """
         if os.path.exists(self.music_file_path):
-            pygame.mixer.music.load(self.music_file_path)
-            pygame.mixer.music.play(loops=-1)
-            pygame.mixer.music.set_volume(self.volume)
+            self.jukebox.load(self.music_file_path)
+            self.jukebox.play(loops=-1)
+            self.jukebox.set_volume(self.volume)
 
     def make_screenshot(self):
         """
@@ -176,9 +163,38 @@ class Terrarium:
         current_datetime = time.strftime("%Y-%m-%d_%H-%M-%S")
         pygame.image.save(
             self.canvas,
-            f"{scrn_path}/{self.app_name}({current_datetime}).png")
+            f"{scrn_path}/{self.app_name}__{current_datetime}.png")
 
-    def hangle_events(self):
+    def pause(self):
+        """
+        Метод экземпляра объекта класса "Террариум", ставящий процесс работы
+        приложения вместе с воспроизведением музыки (если она есть) на паузу
+        и снимающий всё это дело с паузы, если она уже поставлена.
+
+        Ключевые аргументы:
+        self – экземпляр объекта класса "Террариум".
+
+        """
+        self.paused = not self.paused
+        if self.paused:
+            self.jukebox.pause()
+            pygame.display.set_caption(self.app_caption)
+        else:
+            self.jukebox.unpause()
+
+    def exit(self):
+        """
+        Метод экземпляра объекта класса "Террариум", завершающий процесс рабо-
+        ты приложения.
+
+        Ключевые аргументы:
+        self – экземпляр объекта класса "Террариум".
+
+        """
+        pygame.quit()
+        sys.exit()
+
+    def handle_events(self):
         """
         Метод экземпляра объекта класса "Террариум", обрабатывающий события, в
         том числе нажатия на горячие клавиши.
@@ -188,27 +204,59 @@ class Terrarium:
 
         """
         for i in pygame.event.get():
-            # Завершение работы приложения при закрытии окна
+            # Завершение работы приложения c закрытием окна приложения
             if i.type == pygame.QUIT:
-                sys.exit()
-            if i.type == pygame.KEYUP:
-                # Завершение работы приложения при нажатии на клавишу "ESCAPE"
-                if i.key == pygame.K_ESCAPE:
-                    sys.exit()
-                # Захват и сохранение скриншота при нажатии на клавишу "SPACE"
-                if i.key == pygame.K_SPACE:
-                    self.make_screenshot()
+                self.exit()
+            # Установка процесса работы приложения на паузу при сворачивании окна
+            # приложения
+            if i.type == pygame.WINDOWMINIMIZED:
+                if not self.paused:
+                    self.pause()
+            # Снятие процесса работы приложения с паузы при разворачивании окна
+            # приложения
+            if i.type == pygame.WINDOWRESTORED:
+                self.pause()
+            # Обработка горячих клавиш
             if i.type == pygame.KEYDOWN:
+                # Завершение работы приложения при нажатии на клавишу "Escape"
+                if i.key == pygame.K_ESCAPE:
+                    self.exit()
+                # Установка процесса работы приложения  на паузу при нажатии на
+                # клавишу "Пробел" (снятие паузы на неё же)
+                if i.key == pygame.K_SPACE:
+                    self.pause()
+                # Захват и сохранение скриншота на клавишу "Ввод"
+                if i.key == pygame.K_RETURN:
+                    self.make_screenshot()
                 # Увеличение громкости фоновой музыки при нажатии на клавишу
-                # "стрелка вверх"
+                # "Стрелка Вверх"
                 if i.key == pygame.K_UP:
                     self.volume += 0.05
                     self.jukebox.set_volume(self.volume)
                 # Уменьшение громкости фоновой музыки при нажатии на клавишу
-                # "стрелка вниз"
+                # "Стрелка Вниз"
                 if i.key == pygame.K_DOWN:
                     self.volume -= 0.05
                     self.jukebox.set_volume(self.volume)
+
+    def recolor_cell(self, pos_x: int, pos_y: int, color):
+        """
+        Метод экземпляра объекта класса "Террариум", перекрашивающий одну ячейку
+        террариума, находящуюся по полученным координатам, в новый цвет.
+
+        Ключевые аргументы:
+        self – экземпляр объекта класса "Террариум".
+        pos_x - координаты перекрашиваемой ячейки по ширине изображения.
+        pos_y - координаты перекрашиваемой ячейки по высоте изображения.
+        color - новый цвет перекрашиваемой ячейки.
+
+        """
+        x = pos_x * self.cell_size
+        y = pos_y * self.cell_size
+        pygame.draw.rect(
+            self.canvas,
+            color,
+            (x, y, self.cell_size, self.cell_size))
 
     def make_ants_turns(self):
         """
@@ -242,13 +290,12 @@ class Terrarium:
         self – экземпляр объекта класса "Террариум".
 
         """
-        pygame.display.flip()
-        self.start_play_music()
         while True:
-            self.clock.tick(self.framerate)
-            self.hangle_events()
-            self.make_ants_turns()
-            pygame.display.flip()
-            current_fps = self.clock.get_fps()
-            pygame.display.set_caption(
-                f"{self.app_caption} (FPS: {int(current_fps)})")
+            self.handle_events()
+            if not self.paused:
+                self.clock.tick(self.framerate)
+                self.make_ants_turns()
+                pygame.display.flip()
+                current_fps = self.clock.get_fps()
+                pygame.display.set_caption(
+                    f"{self.app_caption} (FPS: {int(current_fps)})")
