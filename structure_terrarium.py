@@ -58,7 +58,7 @@ class Terrarium:
         self.size_y = height // self.cell_size
         self.width = self.size_x * self.cell_size
         self.height = self.size_y * self.cell_size
-        self.table = numpy.full((self.size_y, self.size_x), False, dtype=bool)
+        self.table = numpy.full((self.size_y, self.size_x), 0, dtype=int)
         self.__create_ants()
         self.canvas = pygame.display.set_mode((self.width, self.height))
         self.canvas.fill(Ant.colors['clean'])
@@ -120,11 +120,10 @@ class Terrarium:
         hue_list = Terrarium.__form_hue_spectre(
             Ant.colors['H_begin'], Ant.colors['H_end'], self.ant_count)
         for current_number in range(self.ant_count):
-            self.ant_list.append(
-                Ant(
-                    random.randint(0, self.size_x-1),
-                    random.randint(0, self.size_y-1),
-                    hue_list[current_number]))
+            self.ant_list.append(Ant(
+                random.randint(0, self.size_x-1),
+                random.randint(0, self.size_y-1),
+                hue_list[current_number]))
 
     def start_play_music(self):
         """
@@ -231,12 +230,12 @@ class Terrarium:
                 # Увеличение громкости фоновой музыки при нажатии на клавишу
                 # "Стрелка Вверх"
                 if i.key == pygame.K_UP:
-                    self.volume += 0.05
+                    self.volume += 0.01
                     self.jukebox.set_volume(self.volume)
                 # Уменьшение громкости фоновой музыки при нажатии на клавишу
                 # "Стрелка Вниз"
                 if i.key == pygame.K_DOWN:
-                    self.volume -= 0.05
+                    self.volume -= 0.01
                     self.jukebox.set_volume(self.volume)
 
     def recolor_cell(self, pos_x: int, pos_y: int, color):
@@ -271,13 +270,13 @@ class Terrarium:
         for current_ant in self.ant_list:
             new_color = current_ant.rotate(self.table)
             self.recolor_cell(
-                current_ant.pos_x,
-                current_ant.pos_y,
+                current_ant.x,
+                current_ant.y,
                 new_color)
             new_color = current_ant.move(self.size_x, self.size_y)
             self.recolor_cell(
-                current_ant.pos_x,
-                current_ant.pos_y,
+                current_ant.x,
+                current_ant.y,
                 new_color)
 
     def launch_lifecycle(self):

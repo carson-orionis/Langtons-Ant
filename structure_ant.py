@@ -14,7 +14,7 @@ class Ant:
         'N': 0,  # north
         'E': 1,  # east
         'S': 2,  # south
-        'W': 3   # west
+        'W': 3,  # west
     }
 
     # Словарь с перечислением всех возможных цветов муравья и его следов, а так-
@@ -29,23 +29,23 @@ class Ant:
     }
 
 
-    def __init__(self, start_pos_x: int, start_pos_y: int, hue: int):
+    def __init__(self, start_x: int, start_y: int, hue: int):
         """
         Конструктор экземпляров объекта класса "Муравей".
 
         Ключевые аргументы:
         self - экземпляр объекта класса "Муравей".
-        start_pos_x - стартовое положение муравья на поле по горизонтали.
-        start_pos_y - стартовое положение муравья на поле по вертикали.
+        start_x - стартовое положение муравья на поле по горизонтали.
+        start_y - стартовое положение муравья на поле по вертикали.
         hue - значение тона цвета муравья, используемое для генерации цвета как
         самого муравья, так и оставляемых им следов.
 
         """
-        self.pos_x = start_pos_x
-        self.pos_y = start_pos_y
-        self.direct = random.randint(
-            Ant.directions['N'], Ant.directions['W'])
-        self.ant_color = Ant.__hsv2rgb(
+        self.x = start_x
+        self.y = start_y
+        self.direct = Ant.directions[random.choice(
+            tuple(Ant.directions.keys()))]
+        self.actor_color = Ant.__hsv2rgb(
             hue,
             self.colors['S80'],
             self.colors['B50'])
@@ -84,22 +84,18 @@ class Ant:
         field - таблица координат террариума, по которому бегает муравей.
 
         """
-        # Очищение муравьём закрашенной ранее ячейки
-        if field[self.pos_y][self.pos_x]:
-            field[self.pos_y][self.pos_x] = False
-            new_color = self.colors['clean']
-            # Поворот налево
-            self.direct -= 1
-            if self.direct < self.directions['N']:
-                self.direct = self.directions['W']
         # Закрашивание муравьём пустой ячейки
-        else:
-            field[self.pos_y][self.pos_x] = True
+        if field[self.y][self.x] == 0:
+            field[self.y][self.x] = 1
             new_color = self.trace_color
             # Поворот направо
-            self.direct += 1
-            if self.direct > self.directions['W']:
-                self.direct = self.directions['N']
+            self.direct = (self.direct + 1) % 4
+        # Очищение муравьём закрашенной ранее ячейки
+        else:
+            field[self.y][self.x] = 0
+            new_color = self.colors['clean']
+            # Поворот налево
+            self.direct = (self.direct - 1) % 4
         # Возврат нового цвета ячейки
         return new_color
 
@@ -116,23 +112,15 @@ class Ant:
         """
         # Шаг вверх
         if self.direct == self.directions['N']:
-            self.pos_y -= 1
-            if self.pos_y < 0:
-                self.pos_y = field_size_y-1
+            self.y = (self.y - 1) % field_size_y
         # Шаг вправо
         elif self.direct == self.directions['E']:
-            self.pos_x += 1
-            if self.pos_x >= field_size_x:
-                self.pos_x = 0
+            self.x = (self.x + 1) % field_size_x
         # Шаг вниз
         elif self.direct == self.directions['S']:
-            self.pos_y += 1
-            if self.pos_y >= field_size_y:
-                self.pos_y = 0
+            self.y = (self.y + 1) % field_size_y
         # Шаг влево
         elif self.direct == self.directions['W']:
-            self.pos_x -= 1
-            if self.pos_x < 0:
-                self.pos_x = field_size_x-1
+            self.x = (self.x - 1) % field_size_x
         # Возврат цвета муравья
-        return self.ant_color
+        return self.actor_color

@@ -43,13 +43,13 @@ del IMAGE
 SETTING_LIMITS = {
     SETTING_NAMES[0]: {
         'Min':
-            240,
+            640,
         'Max':
             MAX_WIDTH,
     },
     SETTING_NAMES[1]: {
         'Min':
-            240,
+            320,
         'Max':
             MAX_HEIGHT,
     },
@@ -57,13 +57,13 @@ SETTING_LIMITS = {
         'Min':
             0,
         'Max':
-            2,
+            3,
     },
     SETTING_NAMES[3]: {
         'Min':
             1,
         'Max':
-            1080,
+            1000,
     },
     SETTING_NAMES[4]: {
         'Min':
