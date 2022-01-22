@@ -13,6 +13,7 @@ SETTING_NAMES = (
     'framerate_cap',
     'ant_count',
     'music_file_format',
+    'music_playback_volume',
 )
 
 # Словарь типами значений параметров настроек
@@ -29,6 +30,8 @@ SETTING_DATA_TYPES = {
         'int',
     SETTING_NAMES[5]:
         'str',
+    SETTING_NAMES[6]:
+        'float',
 }
 
 # Вычисление ширины и высоты дисплея компьютера, на котором было запущено данное
@@ -57,7 +60,7 @@ SETTING_LIMITS = {
         'Min':
             0,
         'Max':
-            3,
+            2,
     },
     SETTING_NAMES[3]: {
         'Min':
@@ -82,6 +85,12 @@ SETTING_LIMITS = {
         'wav',
         'xm',
     ],
+    SETTING_NAMES[6]: {
+        'Min':
+            0.01,
+        'Max':
+            1.00,
+    },
 }
 
 # Значения параметров настроек по умолчанию
@@ -98,4 +107,6 @@ DEFAULT_SETTINGS = {
         SETTING_LIMITS[SETTING_NAMES[4]]['Min'],
     SETTING_NAMES[5]:
         'mp3',
+    SETTING_NAMES[6]:
+        0.50,
 }

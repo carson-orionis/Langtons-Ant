@@ -32,9 +32,10 @@ class Terrarium:
         width: int,
         height: int,
         cell_size: int,
-        framerate: int,
+        framerate_cap: int,
         ant_count: int,
         music_format: str,
+        playback_volume: float,
         app_caption: str) -> None:
         """
         Конструктор экземпляров объекта класса "Террариум".
@@ -44,12 +45,14 @@ class Terrarium:
         width – ширина изображения в пикселях.
         height – высота изображения в пикселях.
         cell_size – длина стороны одной ячейки террариума в пикселях.
-        framerate – ограничение максимальной частоты кадров.
+        framerate_cap – ограничение максимальной частоты кадров.
         ant_count – количество муравьёв, которые будут бегать по террариуму.
+        music_format – формат аудиофайла с фоновой музыкой.
+        playback_volume – стартовая громкость воспроизведения фоновой музыки.
         app_caption – название приложения, выводимое в заголовок окна.
 
         """
-        self.framerate = framerate
+        self.framerate = framerate_cap
         self.ant_count = ant_count
         self.app_caption = app_caption
         self.app_name = to_snake_case(self.app_caption)
@@ -71,7 +74,7 @@ class Terrarium:
             '.',
             music_format,
         ])
-        self.volume = 0.25
+        self.volume = playback_volume
         self.paused = False
         pygame.display.flip()
         self.start_play_music()
@@ -128,7 +131,7 @@ class Terrarium:
     def start_play_music(self):
         """
         Метод экземпляра объекта класса "Террариум", включающий воспроизведение
-        фоновой музыки.
+        фоновой музыки (если файл с оной был определён приложением, конечно).
 
         Используется в конструкторе экземпляров объекта класса.
 
@@ -228,12 +231,12 @@ class Terrarium:
                 if i.key == pygame.K_RETURN:
                     self.make_screenshot()
                 # Увеличение громкости фоновой музыки при нажатии на клавишу
-                # "Стрелка Вверх"
+                # "Стрелка вверх"
                 if i.key == pygame.K_UP:
                     self.volume += 0.01
                     self.jukebox.set_volume(self.volume)
                 # Уменьшение громкости фоновой музыки при нажатии на клавишу
-                # "Стрелка Вниз"
+                # "Стрелка вниз"
                 if i.key == pygame.K_DOWN:
                     self.volume -= 0.01
                     self.jukebox.set_volume(self.volume)

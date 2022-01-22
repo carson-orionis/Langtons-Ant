@@ -29,5 +29,6 @@ if __name__ == "__main__":
         current_settings['framerate_cap'],
         current_settings['ant_count'],
         current_settings['music_file_format'],
+        current_settings['music_playback_volume'],
         APPLICATION_CAPTION)
     current_session.launch_lifecycle()
